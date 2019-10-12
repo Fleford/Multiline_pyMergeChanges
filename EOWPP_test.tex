@@ -1,0 +1,627 @@
+\documentclass[authoryear]{elsarticle}
+\journal{Advances in Water Resources}
+\usepackage{natbib}
+%\usepackage[nodots]{numcompress}
+\usepackage{url}
+\usepackage{fullpage}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{amssymb}
+\usepackage{siunitx}
+\usepackage{latexsym}
+\usepackage{graphicx}
+\usepackage{subcaption}
+%\usepackage{epstopdf}
+\usepackage{color}
+\usepackage{lineno}
+\usepackage{setspace}
+\usepackage{lscape}
+\usepackage{bm}
+\usepackage[ruled,vlined]{algorithm2e}
+%\usepackage{enumitem}
+\usepackage{enumerate}
+\usepackage{rotating}
+\graphicspath{ {./EOWPP_Figures/} }
+
+% Packages for document changes
+% Use \usepackage[final]{changes} to see final version
+\usepackage[final]{changes}
+\definechangesauthor[name={Fleford Redoloza}, color=blue]{FR}
+
+\doublespacing
+\begin{document}
+
+
+\begin{frontmatter}
+\title{\bf Well Placement Design Using Extremal Optimization for Groundwater Management}
+
+
+\author[sdsmt]{Fleford Redoloza}
+\author[sdsmt]{Liangping Li\corref{cor}}
+\ead{liangping.li@sdsmt.edu}
+
+\address[sdsmt]{Department of Geology and Geological Engineering, South Dakota School of Mines and Technology, Rapid City, 57701, USA}
+
+\cortext[cor]{Corresponding author}
+\date{\today}
+
+\begin{abstract}
+\deleted[id=FR]{Groundwater management plays an important role in the development of water resources. As cities grow, so does their need for more water. The overall goal of groundwater management is to prevent excessive use of groundwater resources while still meeting water demands. A subproblem within groundwater management is the placement of wells. Given a groundwater resource and a set number of wells, the challenge is to determine the best places to install the wells. A solution for the well placement problem can help cities and industries design well fields for extracting groundwater economically and efficiently. Algorithms used to solve this optimization problem include particle swarm optimization and differential evolution. These algorithms can generate well-field solutions with constraints. However, their use includes the tuning of a number of hyperparameters. On top of solving the optimization problem of interest, additional computational power is required for tuning these hyperparameters. To handle the computational burden, this study proposes a modified version of the Extremal Optimization algorithm (EO), and applies it to groundwater management for the first time. EO works by modifying the components of a solution that contribute the least to its overall performance. EO has no optimization parameters, thereby eliminating the need for hyperparameter adjustments. This work presents an algorithm called EO-WPP, which extends EO to the domain of continuous spatial problems. The EO-WPP algorithm was set to search for a well-field configuration that maximizes cumulative output while respecting a global drawdown constraint.}
+\added[id=FR]{Well placement design refers to the challenge of finding the optimal locations to install a set of wells. This is an important problem found in petroleum and water resource management. The development of a faster optimization method for well placement design allows faster development of more effective and economic well fields. This study presents a novel optimization method for faster well placement optimization. Called EO-WPP, the proposed method is based on the Extremal Optimization (EO) algorithm. EO works by modifying the components of a solution that contribute the least to its overall performance. EO-WPP extends the EO algorithm to the fields of groundwater management and well field optimization for the first time.} In the first testing phases of this work, EO-WPP was applied to a problem of simple geometry and a simple synthetic model in order to study its performance and its emergent spatial behaviors. \added[id=FR]{The proposed method was shown to be faster than Particle Swarm Optimization (PSO) and the Broyden-Fletcher-Goldfarb-Shanno (BFGS) algorithm.} EO-WPP then was applied to a field problem involving the Aberdeen groundwater model in South Dakota. The results show that EO-WPP was able to generate a series of possible of well fields that can be used to pump effectively groundwater from the Elm aquifer.
+\end{abstract}
+
+\begin{keyword}
+Extremal Optimization, GWM, Well Placement, Aberdeen
+\end{keyword}
+\end{frontmatter}
+\newpage
+
+\tableofcontents
+
+\runninglinenumbers
+\newpage
+
+\section{Introduction}
+
+%Intro outline
+%What is the well placement problem? Why is it important to solve?
+%- Common problem in many industries, important managing
+%-- WPP in oil industry
+%-- WPP in water resource management (Focus of this paper)
+%
+%What are methods used to solve the WPP?
+%- Global search methods
+%-- DE, PSO, GA
+%-- global: Avoid local minimums
+%- Local search methods
+%-- Gradient descent (LSP, BFGS)
+%-- Local: Quickly find optimal solutions
+
+%What is Extremal Optimization?
+%-Quick intro of Basic heuristic
+%-Use in literature/industry
+%
+%What does this paper introduce?
+%- A novel method, called EOWPP, that extends EO to well placement problems
+%- The new method adopts both local and global search benefits
+%- New method also has emergent spatial behaviour beneficial for well placement
+
+
+
+\deleted[id=FR]{%What is groundwater management and why is it important
+Groundwater management plays a key role for sustainable use of groundwater resources. As cities and their populations grow, their demand for water increases accordingly. In response, cities are drilling new groundwater wells to keep up with demand. Groundwater resources often are dependent on surface-water features such as nearby rivers. Excessive groundwater pumping can reduce the flow of nearby rivers and affect those who rely on these rivers for their water supply. Groundwater management involves a set of methods that prevent excessive use of groundwater resources while still being able to satisfy water demands.} %Groundwater management is important because prevents water demands from causing irreparable damage to precious groundwater resources.
+
+\deleted[id=FR]{%OLD% What is the Well Placement Problem (WPP)?
+A key task in groundwater management is well-field design, which involves determining how to place and build a set of pumping wells and to optimize the use of water resources. A subproblem within well-field design is the well placement problem. Given the groundwater resource and a set of constraints such as the number of wells, the challenge is to determine the best places to install the wells. A solution for the well placement problem can help cities and industries design well fields that can extract groundwater economically and efficiently. Unfortunately, determining the optimal placement of wells is a challenging task. The optimal configuration of a well field is dependent on numerous factors that range from the economics of installing wells to the hydraulic properties of the aquifer. From a mathematical standpoint, the problem involves maximizing a non-linear, multi-modal objective function. Such a task is computationally expensive because of the large size and complexity of numerical flow\deleted[id=FR]{ and transport} models used to simulate the performance of these well fields under the stress conditions.}
+
+\added[id=FR]{
+%What is the Well Placement Problem (WPP)?
+Well placement design refers to the challenge of finding the optimal locations to install a set of wells. This is a common problem found in many fields of natural resource management. In the petroleum industry, solving the well placement problem allows the design of optimal well fields that can efficiently and economically produce from hydrocarbon reservoirs \citep{sarma2008efficient,feng2012optimizing,nwankwor2013hybrid,nozohour2016application}. For water resource management, solving the well placement problem can lead to efficient well field designs for producing groundwater or for groundwater remediation \citep{park2004multi,bayer2009optimized,elcci2014differential,wang1994optimal}. Finding a good optimization method for well placement design allows the construction of more efficient, effective and economic well fields.}
+
+\deleted[id=FR]{%%What are popular methods to solve the WPP (DE, PSO)
+In previous decades, many algorithms have been developed to solve the well placement problem. Because calculating the absolutely best well-field configuration is a computationally intractable problem, most solutions rely on stochastic and heuristic methods. Popular algorithms in the literature include particle swarm optimization and differential evolution citep{minton2012comparison}.}
+
+\added[id=FR]{
+% What are methods used to solve the WPP? (global and local methods)
+In previous decades, many algorithms have been developed to solve the well placement problem \citep{minton2012comparison}. These optimization algorithms can be classified into two main methods: Global search algorithms and local search algorithms.
+
+% Global search algorithms
+Global search algorithms refer to optimization algorithms designed to seek the global minimum or maximum of a given optimization problem \citep{chong2013introduction}.  Global search algorithms are the common type of methods used for well placement optimization \citep{minton2012comparison}. Examples of algorithms used include differential evolution, particle swarm optimization, and genetic algorithms \citep{elcci2014differential,feng2012optimizing,emerick2009well}. To improve performance, researchers have also developed hybrids of these methods \citep{nwankwor2013hybrid,guyaguler2001uncertainty}. These algorithms are likely popular due to their ability to avoid local minimums. To escape local minimums, popular global search algorithms use methods like relying on stochastic methods and evaluating a population of solutions. By relying on randomness and checking a large number of possible solutions, global search algorithms can recognize if they are stuck in local minimum and take steps to escape from it.
+
+% Local search algorithms
+Unlike global search algorithms, local search algorithms are optimization algorithms that are susceptible to converging to sub-optimal solutions. But in exchange for the risk of getting trapped
+at local minimums, local search algorithms can reach an optimal solution faster than global search algorithms \citep{mahinthakumar2005hybrid,humphries2014simultaneous}. Local search methods are faster because they make assumptions about the optimization problem that allows fewer evaluations of the objective function. Reducing the number of times the objective function is evaluated is a valuable technique for speed, especially when the objective function involves a large numerical flow model that is computationally expensive to evaluate. Examples of local search algorithms include the Nelder-Mead method, the Broyden–Fletcher–Goldfarb–Shanno (BFGS) algorithm, gradient descent algorithms, and other pattern search algorithms \citep{nelder1965simplex,liu1989limited,ruder2016overview,torczon1997convergence}. To reduce risk of getting stuck on local minimums while still retaining the speed benefits of requiring few objective function evaluations, researchers have developed hybrids of global and local search optimization methods \citep{mahinthakumar2005hybrid,humphries2014simultaneous}. Our proposed method seeks a similar goal, however we approach the task using the unique perspective of extremal optimization.}
+
+\deleted[id=FR]{%Particle Swarm Optimization
+Particle swarm optimization (PSO) was first introduced by cite{eberhart1995new} at an IEEE Conference. Its heuristic was inspired by the movement of a flock of birds or a school of fish. It solves optimization problems by having a population of candidate solutions (e.g., particles). It moves these particles around in the search space according to a mathematical formula based on the particles’ positions and velocities citep{tayfur2017modern}. Each particle’s movement is influenced by its local best-known position, which is guided toward the best-known positions in the search space. Each particle adjusts its flight according to the experiences of both itself and its companions. The best positions are updated as better positions are found by other particles. This is expected to move the swarm toward the best solutions. cite{gaur2013application} used particle swarm optimization together with artificial neural networks for the management of groundwater resources of the Dore River basin in France. The ANN-PSO model was successfully applied to minimize the pumping cost of the wells and a pipe line. For PSO applications of well placement, cite{feng2012optimizing} used particle swarm optimization to determine an optimal way to place wells in a coalbed methane reservoir located in the southeastern part of the Ordos Basin, China, where its objective function was to maximize the net present value (NPV) of the simulated reservoir. They found that a minimum swarm size of 10 particles was required to consistently converge to the global optima.}
+
+\deleted[id=FR]{%Differential Evolution
+Differential evolution (DE) was first introduced by citet{storn1996usage} and citet{storn1997differential}. It is essentially a genetic algorithm applied to continuous problems. A genetic algorithm was first introduced by cite{holland1975adaptation}; its heuristic is based on the principle of natural selection. The basic idea is that an initial population of potential solutions is randomly generated, with each individual solution described by a gene. A fitness function then is used to rate and remove all individuals that fail to be fit enough to survive. The surviving population of individuals mate with each other, which involves the mixing (crossover) and mutation of the genes of the current population and the generation of new genes for the population. By repeatedly trimming and breeding the population, individuals with beneficial characteristics are more likely to survive and breed. After many generations, the result is a population of solutions that fit the objective function. \replaced[id=FR]{Differential evolution operates the same way as genetic algorithms.}{Unlike genetic algorithms, which operate only on discrete problems, differential evolution runs on the same heuristic but for continuous problems.} cite{li2013differential} applied differential evolution for the prediction of longitudinal dispersion coefficients in natural rivers. In this study, a new expression (objective function) considering the hydraulic and geometric characteristics of rivers were proposed. They used the mutation operator, crossover operator, and selection operator to generate the offspring, and concluded that differential evolution can find the least root mean square error, the highest coefficient of correlation, and the least average relative error to the measured value, with good convergence characteristics and reasonable computational efficiency citep{tayfur2017modern}. For its applications in well placement, cite{nwankwor2013hybrid} combined differential evolution and particle swarm optimization into a single hybrid algorithm in order to determine how to place wells for developing a hydrocarbon reservoir, and found that the performance of both differential evolution and particle swarm optimization algorithms is dependent on the number of function evaluations performed.}
+%Based on their findings, they also believe that hybridized metaheuristic optimization algorithms are applicable in the problem domain of optimal well placement.
+
+%%Extremal Optimization for Well Placement: What am I proposing and how is it novel/useful?
+%(INCLUDE THE FOLLOWING: The main contributions of EO-WPP is that it is a unique optimization method built to solve the placement of wells)
+% Main contributions of EO-WPP is that it is a unique optimization method built to solve the placement of wells
+%-> Combines benefits of global and local search methods
+%--> global-search-aspect: Can escape local minimums and better explore search space
+%--> local-search-aspect: Can quickly converge towards solution. Reduced memory needs
+%-> Generates well solutions where wells are clustered, a bias towards reasonable spaced wells
+
+\deleted[id=FR,remark={Remove discussion with hyperparameters}]{
+% Introduce the concept of hyperparameters
+The aforementioned optimization algorithms such as PSO and DE are capable of generating good solutions for the well placement problem. However, the use of these algorithms requires tuning of their hyperparameters. Hyperparameter tuning refers to determining the optimal parameters of an algorithm. Generally, the parameters of an algorithm are adjusted, based on the problem being solved. Ideal algorithm parameters are determined by running the optimization algorithm multiple times. Therefore, hyperparameter tuning becomes troublesome if the algorithm contains many parameters that require adjustment prior to every use. Also, the search for optimal algorithm parameters can place additional computational demand on the overall optimization problem.}
+
+\deleted[id=FR]{
+%Introduce Extremal Optimization and explain how it reduces the need for hyperparameters
+To reduce complications caused by tuning hyperparameters, cite{boettcher1999extremal} introduced a unique optimization algorithm called Extremal Optimization(EO). EO is a local search heuristic optimization algorithm that has no hyperparameters. citet{boettcher1999extremal} were able to show that EO could perform as well as other optimization algorithms while being simpler and having no hyperparameters.}
+
+\deleted[id=FR,remark={Removed discussion of Bak-Sneppen model}]{
+%Explain the origin of Extremal optimization (Bak-Sneppen Model)
+EO was inspired by the Bak-Sneppen model, which was first introduced by cite{bak1993punctuated} in order to model the co-evolution of interacting species. The model was developed to demonstrate how self-organized criticality can help explain interesting biological evolution behavior such as “punctuated equilibrium.” The Bak-Sneppen evolution can be defined in the following way citep{fraiman2017local}: There exist $N$ particles, sites, or species in a one-dimensional ring, and each site $k$ is characterized by a quantity $X_{k}$, called fitness, which evolves by:
+%\begin{equation}
+%X_{k}(t+1) = \begin{cases}
+%X_{k}(t) &dist(k,{\tilde{k}}_{t}) > a\\
+%U_{k,t} &dist(k,{\tilde{k}}_{t}) \leq a
+%\end{cases}
+%\end{equation}
+where ${\widetilde{k}}_t=\left\{k\ \colon{\ X}_k\left(t\right)\le X_j\left(t\right)\ \ \forall j\in\left\{1,2,\cdots,N\right\}\right\}$ is the particle with the lowest $X$ value at the time~$t$. The distance between two particles, $i$ and $j$, is $dist\left(i,j\right)=min\left(\left|i-j\right|,\left|i+j-N\right|\right)$, just in order to have a ring configuration (periodic boundaries conditions). $U_{k,t}$ are independent and identically distributed random variables with uniform distribution (0,1) and $a\in\mathbb{N}$ is the number of neighbors on each side that are interacting with any given particle. The initial condition is uniform, i.e., $X_k\left(0\right)=U_{k,0}$ for all particles. cite{bak1993punctuated} showed when $a=1$, this simple model exhibits self-organized criticality. Self-organized criticality refers to when a dynamic system exhibits criticality (on the edge of a phase transition, such as an avalanche) without need for any tuning (self-organized criticality). At the thermodynamic limit of the Bak-Sneppen model (as the model runs indefinitely), all particles appear with a fitness value that is distributed uniformly between a critical value $p_c$ and 1, and there are avalanches of particle extinction citep{fraiman2017local}. An avalanche is a succession of events where the lowest fitness value is less than $p_c$. When the model runs, $p_c$ rapidly increases through a series of avalanche events until it reaches a point of stability. At stability, any particles that have a fitness below $p_c$ or that are adjacent to any particles with a fitness below $p_c$ are quickly replaced during an avalanche.}
+
+\deleted[id=FR]{
+% Explain the fundamental idea of Extremal Optimization ("Replace the worst with something random")
+Behaviors of self-organized criticality arising from such simple rules motivated early researchers to take advantage of the model’s emergent properties. cite{boettcher1999extremal} were the first to convert the Bak-Sneppen model into an optimization algorithm, termed as Extremal Optimization (EO). The fundamental heuristic from the Bak-Sneppen model, which EO relies on, is that the overall solution can be improved by replacing the worst-performing component of a solution with something random. citet{boettcher1999extremal} explained that the focus on the least-performing individuals is important for the emergence of self-organized systems. By placing focus only on the worst components of a solution, the system is free to explore the solution space without being biased to any specific definition of an optimal solution. In addition to citing the Bak-Sneppen model, citeauthor{boettcher1999extremal} described how the Darwinian model also functions on the same principle. In natural selection, they extended that complexity arises because only individuals who are the worst of the population die off. No bias is placed on a specific solution because the only criteria is survival. In the context of the Bak-Sneppen model, the goal of any individual is to have a fitness that is above the critical value, $p_c$.}
+
+% Briefly introduce EO, its main heuristic, and cite its applications
+\added[id=FR]{Extremal optimization (EO) is an optimization algorithm introduced by \citet{boettcher1999extremal}. The main heuristic of EO is that in order to improve the performance of a given solution, simply identify the least performing component of a solution and replace it with something randomly generated. By iteratively changing the worst component of the solution, the performance of the overall solution will improve. After its introduction in \citeyear{boettcher1999extremal}, EO was used in many disciplines of science and engineering. In mechanical engineering, \cite{de2004generalized} used a variant of EO called generalized extremal optimization to design a heat pipe for satellite thermal control. In distributed computing, \cite{de2015extremal} used EO as a part of a load-balancing algorithm for clusters of multi-core processors. Additional applications include fractional order proportional-integral-derivative (PID) controllers, wind speed forecasting, and spin glass (e.g., \cite{zeng2015design,chen2018wind,boettcher2005extremal})}
+
+\deleted[id=FR]{% Describe the use of EO in literature
+After its introduction in citeyear{boettcher1999extremal}, EO was used in many disciplines of science and engineering. EO was used initially in statistical physics to solve the problem of spin glass. Spin glass is a disordered magnet where the magnetic spins of the component atoms are not aligned in a regular pattern. The challenge is to determine the orientation of the spins of atoms in order to minimize the overall energy of the system. cite{boettcher2005extremal} applied the EO algorithm to minimize the overall energy function and calculate the ground state configuration of various spin glass. In distributed computing, cite{de2015extremal} applied EO as part of a load-balancing algorithm for clusters of multi-core processors. In their algorithm, EO was used to periodically detect the best tasks as candidates for migration and for a guided selection of the best computing nodes to receive the migrating tasks. In engineering, cite{de2004generalized} applied a variant of EO called generalized extremal optimization (GEO) for the complex design of heat pipes for satellite thermal control.}
+
+% Explain why EO is not that popular compared to other methods
+Although EO has been used in a variety of applications, \replaced[id=FR]{no work was found that used EO for water resource management or well placement optimization.}{it has received less attention in hydrogeology than other algorithms such as PSO and DE.} This is likely because \replaced[id=FR]{EO}{it} requires a fitness function that can rank the fitness of each of the components of a solution \citep{boettcher2002optimization}. \replaced[id=FR]{Most optimization algorithms use an objective function that outputs a single value.}{Stochastic optimization algorithms such as PSO only require the overall objective function,} \replaced[id=FR]{However,}{but} EO also needs a function that determines how much \replaced[id=FR]{each}{a} component of a solution contributes to the overall objective function. For many problems, such a function might be too ambiguous or impossible to define. Variants of EO, such as general extremal optimization \citep{de2004generalized} try to solve this problem by defining a general way to partition the objective function into components that correspond to components of a solution.
+
+%Introduce EO-WPP and its contributions
+In this work, we introduce EO to the well placement problem in groundwater management for the first time and propose a novel component-based fitness function specific for the problem domain, termed as Extremal Optimization for the Well Placement Problem (EO-WPP). The EO-WPP algorithm will employ this new fitness function to allow the use of EO on well placement problems without significantly changing the structure of the original EO algorithm. \added[id=FR]{We show that EO-WPP with its unique fitness function allows the algorithm to adopt both the local-minimum avoidance behaviour of global search algorithms and the speed of local search algorithms.} By the nature of the heuristic used to replace the worst-performing components, EO-WPP also displays emergent spatial behaviours that are useful for the design of well fields. \deleted[id=FR]{More importantly, there is no hyperparameter tuning in EP-WPP. }A simple geometry and synthetic examples will be used to demonstrate the method initially. The method then will be applied in Aberdeen aquifer in South Dakota for a field example of the well placement problem.
+
+%This study applies the EO-WPP algorithm to synthetic and real well field scenarios to examine its potential as a well placement optimization method.
+
+
+%In this work, To apply Extremal Optimization to the well placement problem, this paper introduces a component-based fitness function specific for the problem domain. Called Extremal Optimization for the Well Placement Problem (EO-WPP), the EO-WPP algorithm use this new fitness function to allow the use of EO on well placement problems without significantly changing the structure of the original EO algorithm. By the nature of the heuristic used to replace the worst-performing components, EO-WPP also displays emergent spatial behaviours that are useful for the design of well fields. However, EO-WPP's main advantage is that it has zero hyperparameters, and therefore requires no hyperparameter tuning.  This study applies the EO-WPP algorithm to synthetic and real well field scenarios to examine its potential as a well placement optimization method.
+
+
+\section{Methodology}
+
+\subsection{Groundwater Flow Equation}
+The governing equation for three-dimensional transient groundwater flow in heterogeneous and anisotropic conditions is given as follows \citep{anderson2015applied}:
+
+\begin{equation}
+ \frac{\partial }{\partial x}\big(K_x\frac{\partial h}{\partial x}\big)+\frac{\partial }{\partial y}\big(K_y\frac{\partial h}{\partial y}\big)+\frac{\partial }{\partial z}\big(K_z\frac{\partial h}{\partial z}\big)-W^* =S_s\frac{\partial h}{\partial t}
+\end{equation}
+where $K$ is hydraulic conductivity, $h$ is hydraulic head, $S_s$ is specific storag,e and t is time. $W^*$ is a source or sink. In this study, MODFLOW\citep{mcdonald2003history}, a modular finite-difference flow model program developed by the U.S. Geological Survey (USGS), was used to solve the groundwater flow equation numerically.
+
+%Explain the consequences of inherent model error
+A groundwater model is a conceptual representation of a real aquifer. When building a model, errors can be introduced through measurement, conceptual framework, or other sources \citep{anderson2015applied}. This means that if a well-field configuration is optimized using a groundwater model, the optimal solution for the model could be different from the optimal solution for the real aquifer. \added[id=FR]{For example, optimization algorithms may place wells next to constant head boundaries since there is effectively no limit on the flow rate.} \replaced[id=FR]{When interpreting any well field solution, ensure that the solution takes advantage of the underlying hydrogeological structure of the study area, instead of abusing characteristics only unique to the computer model.}{This discrepancy must be considered when interpreting algorithm results.}
+
+\subsection{Extremal Optimization for Well Placement Problems (EO-WPP)}
+The EO-WPP algorithm is very similar to the original EO algorithm that was proposed by \citet{boettcher1999extremal}. \replaced[id=FR]{The main difference is how the fitness function was defined and how the least fit component of the solution was adjusted.}{The main difference resides in the fitness function and the replacement heuristic.}
+
+%Explain the fitness function for EO-WPP
+The fitness function quantifies how much a given component of the solution contributes to the overall performance of the solution. Within the context of well placement problems, the fitness function determines how much a given pumping well contributes to the overall output of the well field. For EO-WPP, the fitness function evaluated at a well is defined to be the total volume of water produced by the well after operating at its optimal pumping rates for all time periods. Therefore, wells with a high fitness will produce a greater cumulative output than other wells. One of the main assumptions in EO-WPP is that the well which produces the most amount of water with the constraint of drawdown is the most fit well. \added[id=FR]{The goal of EO is to adjust the components of a solution in order to maximize their fitness.} Thus the goal of EO-WPP is to \replaced[id=FR]{is to adjust the location of the wells in such a way that maximizes their cumulative output when they operate with optimal pumping rates.}{maximize pumping rates while respecting a global drawdown constraint.}
+
+%In order for this definition of the fitness function to perform well for EO-WPP, a list of assumptions (Figure \ref{fig:FitFuncAssumps}) must be valid.
+%Explain how the fitness function is implemented
+\deleted[id=FR]{Because the EO-WPP's fitness function requires determining the optimal pumping rates, a separate optimization algorithm is required.}\added[id=FR]{The purpose of EO-WPP's fitness function is to accept a well field placement configuration as input and output the volume of water produced by each well when the well field operates at its optimal pumping rates. These optimal pumping rates are computed using a separate optimization method. For this study, EO-WPP's fitness function was implemented using a computer program called GWM \citep{ahlfeld2005gwm} (see Section \ref{GWM} for details about GWM). However, any other local optimization algorithm could have been used.} \replaced[id=FR]{EO-WPP only uses the fitness function to identify the best and worst wells. Therefore, the accuracy of the optimal pumping rates only needs to be good enough to identify the best and worst wells. Approximations of the optimal pumping rates can be quickly reached by adjusting the convergence criterion of the optimization algorithm. This modification reduces the computational requirement for evaluating the fitness function.}{The fitness function only needs to determine which well produces the least amount of water. Therefore, the optimization algorithm needs only enough computational effort to determine this well. The precise value of the well output is not required.} \deleted[id=FR]{For this study, EO-WPP's fitness function was implemented using a computer program called GWM citep{ahlfeld2005gwm} (see Section ref{GWM} for details about GWM).}
+
+%Explain the replacement heuristic
+In the original EO algorithm, the least fit component is replaced by a randomly generated component. In EO-WPP, the least fit well is removed and replaced with a new well that is randomly placed near the most fit well. This heuristic assumes that the best place to put a new well will likely be near the best well. The heuristic allows the EO algorithm to quickly converge toward an optimal solution, but it also generates a bias and makes the algorithm more susceptible to being trapped at local maximums. This can be resolved by implementing the $\tau$-EO method introduced by \cite{boettcher1999extremal}.
+
+%\newpage
+%Defining critical variables and functions for EO-WPP
+
+
+%Prior to the introduction of the EO-WPP algorithm, critical matrices and functions used by the algorithm are defined and explained.
+
+\subsection{EO-WPP Algorithm}
+%\newpage
+%Explain the EO-WPP algorithm
+%The EO-WPP algorithm is shown on Algorithm \ref{EOWPP} and a flowchart of the algorithm is shown  on Figure~\ref{fig:EOWPP_Flowchart}. What follows is a detailed explanation of the steps for the EO-WPP algorithm.
+The original EO algorithm was detailed in \citet{boettcher1999extremal}. The proposed EO-WPP has the following steps:
+
+\begin{enumerate}[Step 1:]
+% Initialize the solution matrix
+\item
+\textit{Initialize the solution matrix}\\
+The algorithm begins by initializing the solution matrix, $W$. For EO-WPP, $W$ is the matrix that contains the locations of all the wells that are to be optimized. When expanded, the locations of the wells can be encoded as such:
+\begin{equation}\label{SolutionMatrix}
+    W = \begin{bmatrix}
+           \vec{w}_{1} \\
+           \vdots\\
+           \vec{w}_{i} \\
+           \vdots \\
+           \vec{w}_{I}
+         \end{bmatrix}
+      = \begin{bmatrix}
+        x_{1} & y_{1}\\
+        \vdots & \vdots\\
+        x_{i} & y_{i}\\
+        \vdots & \vdots\\
+        x_{I} & y_{I}
+        \end{bmatrix}
+\end{equation}
+where $I$ is the total number of wells, $\vec{w}_{i}$ is the location row vector of the $i$th well, and $x_{i}$, $y_{i}$ are the row and column locations of the $i$th well. The goal of EO-WPP is to determine the $W$ matrix that maximizes the objective function. It does this by starting with an initial, randomly generated $W$ matrix, and then iteratively adjusting this matrix until it converges onto a solution.
+
+When initializing the solution matrix, a given number of wells are randomly placed within the model domain. This must be done in way that makes the constraint function return $True$, as shown below. The constraint function, $\mathbf{C}$, is the function that checks if a given solution matrix respects all constraints. For EO-WPP, the $\mathbf{C}$ function checks spatial constraints between wells and boundary conditions. \replaced[id=FR]{Examples of spatial constraints may include minimum distances to the boundary or defining areas of the domain to avoid:}{, along with constraints on the drawdown limits and pumping rates of the wells:}
+\begin{equation}\label{Constraint Function}
+\mathbf{C}(W) = \begin{cases}
+\mathbf{C}(W) = \textit{True} & \text{if $W$ respects all constraints}\\
+\mathbf{C}(W) = \textit{False} & \text{if $W$ fails to meet all constraints}
+\end{cases}
+\end{equation}
+The constraint function simply returns \textit{True} if the solution matrix respects all constraints and returns \textit{False} if it does not. When initializing the solution matrix, the generated matrix must satisfy $\big(\mathbf{C}(W_{l=0}) = \textit{True}\big)$. \added[id=FR]{Constraints for the drawdown and the pumping rates are handled by the fitness function.}
+
+% Evaluate the fitness function
+\item \label{EvaluateFitnessFunction}
+\textit{Evaluate the fitness function}\\
+Given the solution matrix, $W$, the corresponding fitness vector is calculated. The fitness vector, $Q$, is the vector that contains the fitness for all the components of the solution. For EO-WPP, $Q$ is the vector that contains the cumulative volumes for each of the wells. The vector can be constructed as such:
+\begin{equation}\label{FitnessVector}
+  Q = \begin{bmatrix}
+        q_{1}\\
+        \vdots\\
+        q_{i}\\
+        \vdots\\
+        q_{I}\\
+      \end{bmatrix}
+\end{equation}
+where $q_i$ is the cumulative volume of water the $i$th well produces after operating through all time periods using its optimal pumping rates. Note that if only one stress period exists, then $q_i$ can also represent the pumping rate of the $i$th well.
+
+To calculate the fitness vector, the fitness function is applied to the solution matrix. The fitness function, $\mathbf{F}$, is the function that takes a solution matrix as its input and determines the corresponding fitness vector. For EO-WPP, $\mathbf{F}$ takes the well locations, $W$, and calculates their corresponding fitness, $Q$:
+\begin{equation}\label{FitnessFunction}
+  Q = \mathbf{F}(W)
+\end{equation}
+\added[id=FR]{With every iteration of EO-WPP, the previous optimal values are discarded and new optimal values are recalculated. This is because the placement of new wells may affect the optimal values of adjacent wells.} When implementing the $\mathbf{F}$ function, its computer code incorporates both the groundwater model and the optimization program that determines the optimal pumping rates. In this paper, the groundwater flow model was simulated by MODFLOW \citep{mcdonald2003history} and the pumping rate optimization was performed by GWM \citep{ahlfeld2005gwm}.
+
+% Remove the worst well
+\item
+\textit{Remove the worst well}\\
+With the new fitness vector, the worst well is identified. The worst well is the well that has the lowest fitness value:
+\begin{align}
+  \vec{w}_{worst}=\{\vec{w}_{i_{worst}}\in W: q_{i_{worst}}\leq q_{i}\ \forall q_{i} \in Q\}
+\end{align}
+After the worst well is identified, it is removed from the solution matrix. This is done by defining a new solution matrix, $W'$, that contains everything but the worst well:
+\begin{equation}
+  W' = \{\vec{w}\in W: \vec{w}_{worst}\notin W'\}
+\end{equation}
+
+% Insert a new well
+\item
+\textit{Insert a new well}\\
+To replace the removed well, a new well is generated. The location of the new well $\vec{w}_{new}$ is dependent on the location of the best well, $\vec{w}_{best}$, the maximum distance between wells, $d_{max}$, and a random unit vector, $\vec{u}$:
+\begin{align}
+  \vec{w}_{best}&=\{\vec{w}_{i_{best}}\in W: q_{i_{best}}\geq q_{i}\ \forall q_{i} \in Q\}\\
+  d_{max} &= \text{maximum Euclidean distance between any two wells within $W'$}\\
+  \vec{u} &= \text{random unit vector with the same dimensions as $\vec{w}$}\\
+  \label{newwelllocation} \vec{w}_{new} &= \vec{w}_{best} + d_{max}\vec{u}
+\end{align}
+The new well is placed at a random location near the best well (Equation \ref{newwelllocation}). The new well then is inserted into the solution matrix, $W'$, to form a new solution matrix, $W''$:
+\begin{equation}
+  W'' = \{ \vec{w}:(\vec{w} \in W')\ or\ (\vec{w} = \vec{w}_{new})\}
+\end{equation}
+Before moving on, the new solution matrix, $W''$ must satisfy all constraints $\big(\mathbf{C}(W'') = \textit{True}\big)$. If it does not $\big(\mathbf{C}(W'') = \textit{False}\big)$, then a new $\vec{u}, \vec{w}_{new}$ and $W''$ is generated and calculated until the new well field respects all constraints $\big(\mathbf{C}(W'') = \textit{True}\big)$. After $W''$ passes all constraint checks, the temporary well field becomes accepted as the new well field configuration for the current iteration of the algorithm $\bigg( W'' \xrightarrow{\mathbf{C}(W'') = \textit{True}} W\bigg)$.
+
+% Check if a new best solution is found
+\item \label{CheckIfNewBestFound}
+\textit{Check if a new best solution is found}\\
+To check the performance of the new solution, its objective function is evaluated. $\mathbf{O}$ is the objective function that EO-WPP tries to maximize. It is a function of the location of the wells, $W$, and can be calculated with the fitness function, $\mathbf{F}$:
+\begin{equation}\label{ObjectiveFunction}
+  \mathbf{O}(W) = \mathbf{F}(W)\cdot \begin{bmatrix}1\\\vdots\\1\end{bmatrix}_{I\times1} = \sum_{i=1}^{I} q_{i}
+\end{equation}
+\added[id=FR]{Unlike the fitness function, the objective function does not require a separate optimization process.} The objective function \replaced[id=FR]{simply takes the results of the fitness function, $Q$, and reports the sum of the fitness values of all the components.}{is simply the sum of the fitness of all the wells.} In other words, the objective function \replaced[id=FR]{represents}{calculates} the cumulative volume of water a given well field produces when its pumps operate at their optimal rates for all stress periods.
+The objective function of the new well-field configuration, $W$, is calculated and if the result is strictly greater than the best solution found so far $\big(\mathbf{O}(W)>\mathbf{O}(W_{Best})\big)$, then $W$ is saved as the new best solution, $W_{Best}$.
+
+% Check if the stopping criterion is met
+\item
+\textit{Check if the stopping criterion is met}\\
+Steps \ref{EvaluateFitnessFunction} to \ref{CheckIfNewBestFound} are repeated for a set number of iterations, $L$. However, if computational power is not a limitation, then $L$ should be set to the maximum value, $L_{Convergence}$. $L_{Convergence}$ is the number of EO-WPP iterations such that the performance of $W_{Best}$ does not increase with iteration numbers greater than $L_{Convergence}$:
+\begin{equation}\label{ObjectiveFunction}
+  L = \bigg\{0\le L\le L_{Convergence}:W_{Best_{L_{Convergence}}}=W_{Best_{L_{Convergence}+k}}\ \forall k \in \mathbb{N} \bigg\}
+\end{equation}
+After performing $L$ iterations, the algorithm simply reports the best solution found, $W_{Best}$, as the final result.
+
+\end{enumerate}
+
+Figure~\ref{fig:EOWPP_Flowchart} shows the flowchart of EO-WPP method. Its algorithm is shown on Algorithm \ref{EOWPP}.
+
+\begin{algorithm}
+\caption{Extremal Optimization for Well Placement Problems (EO-WPP)}
+\label{EOWPP}
+\DontPrintSemicolon
+\Begin{
+    $\text{Let: }L = \text{Total number of iterations}$\;
+    $\text{Let: }l = \text{Current iteration of the algorithm}$\;
+    $\text{Let: }W = \text{The solution matrix (the set of all well locations)}$\;
+    $\text{Let: }\vec{w}_{i} = \text{The location of the $i$th well, $\vec{w}_{i}\in W$)}$\;
+    $\text{Let: }q_{i} = \text{The fitness of the $i$th well of solution $W$, $q_{i}\in Q$}$\;
+    $\text{Let: }\mathbf{O}(W) = \text{The objective function evaluated for solution $W$}$\;
+    $\text{Let: }\mathbf{F}(W) = \text{The fitness function evaluated for solution $W$}$\;
+    $\text{Let: }\mathbf{C}(W) = \text{The constraint function evaluated for solution $W$}$\;
+    $\text{Let: }W_{Best} = \big\{W_{Best}:O(W_{Best})\geq O(W_{l})\ \forall l \in \{0,1,2,\cdots,L\} \big\}\text{, i.e. the best solution found}$\;
+    $\text{Set: }L = \bigg\{0\le L\le L_{Convergence}:W_{Best_{L_{Convergence}}}=W_{Best_{L_{Convergence}+k}}\ \forall k \in \mathbb{N} \bigg\}$\;
+    $\text{Set: }l = 0$\;
+    $\text{Set: }W = \text{Random initial configuration such that }\mathbf{C}(W) = \textit{True}$\;
+    $\text{Set: }W_{Best} = W$\;
+    \While{$l \leq L$}{
+        $\text{Set: }l = l + 1$\;
+        $\text{Calculate: }Q = \mathbf{F}(W)$\;
+        $\text{Find: }\vec{w}_{worst}=\{\vec{w}_{i_{worst}}\in W: q_{i_{worst}}\leq q_{i}\ \forall q_{i} \in Q\}$\;
+        $\text{Find: }\vec{w}_{best}=\{\vec{w}_{i_{best}}\in W: q_{i_{best}}\geq q_{i}\ \forall q_{i} \in Q\}$\;
+        $\text{Let: }W' = \{\vec{w}\in W: \vec{w}_{worst}\notin W'\}\text{, i.e. remove $\vec{w}_{worst}$ from the solution}$\;
+        $\text{Let: }d_{max} = \text{Maximum Euclidean distance between any two wells within $W'$} $\;
+        $\text{Let: }\vec{u} = \text{Random unit vector with the same dimensions as $\vec{w}$}$\;
+        $\text{Let: }\vec{w}_{new} = \vec{w}_{best} + d_{max}\vec{u}$\;
+        $\text{Let: }W'' = \{ \vec{w}:(\vec{w} \in W')\ or\ (\vec{w} = \vec{w}_{new})\}\text{, i.e. add $\vec{w}_{new}$ to the solution}$\;
+        \While{$\mathbf{C}(W'') = \textit{False}$}{
+            $\text{Create new: }\vec{u}$\;
+            $\text{Recalculate: }\vec{w}_{new} = \vec{w}_{best} + d_{max}\vec{u}$\;
+            $\text{Recalculate: }W'' = \{ \vec{w}:(\vec{w} \in W')\ or\ (\vec{w} = \vec{w}_{new})\}$\;
+        }
+        $\text{Accept }W = W''\text{ unconditionally} $\;
+        \If{$\mathbf{O}(W)>\mathbf{O}(W_{Best})$}{
+        $\text{Set: }W_{Best} = W$\;
+        }
+    }\KwRet{$W_{Best}$}
+}
+\end{algorithm}
+
+
+\subsection{Groundwater Management Program (GWM)} \label{GWM}
+%Explain GWM and its objective function
+GWM is a Groundwater Management Process optimization program and its purpose is to determine the pumping rates which maximizes the overall output of a given well field while respecting a set of constraints. The objective function maximized by GWM can be described as \citep{ahlfeld2005gwm}:
+\begin{equation}\label{GWMObjFunc}
+    \sum_{n=1}^{N} \beta_{n}Qw_{n}T_{Qw_{n}}
+    +
+    \sum_{m=1}^{M} \gamma_{m}Ex_{m}T_{Ex_{m}}
+    +
+    \sum_{l=1}^{L} \kappa_{l}I_{l}
+\end{equation}
+
+\begin{itemize}
+    \item [where:]
+    \item[]
+        \begin{itemize}[noitemsep]
+        \item[$\beta_{n}$] is the cost or benefit per unit volume of water withdrawn or injected at well site $n$;
+        \item[$\gamma_{m}$] is the cost or benefit per unit volume of water imported or exported at external site $m$;
+        \item[$\kappa_{l}$] is the unit cost or benefit associated with the binary variable $I_{l}$;
+        \item[$Qw_{n}$] is the withdrawal or injection rate at well site $n$;
+        \item[$Ex_{m}$] is the import or export rate at external site $m$;
+        \item[$I_{l}$] is a binary variable at site $l$. $I_{l}=1\ or\ 0$;
+        \item[$T_{Qw_{n}}$] is the total duration of flow at well site $n$;
+        \item[$T_{Ex_{m}}$] is the total duration of flow at external site $m$;
+        \item[$N,M,L$] are the total number of flow-rate, external, and binary decision variables;
+        \end{itemize}
+\end{itemize}
+
+Note that the objective function is composed of a summation term for the wells, a term for any external sources, and a term for any external sources with a binary attribute. For this project, only the summation term was used and the other two were disregarded (set to zero). This was done to simplify synthetic examples during testing. However, EO-WPP can operate with the entire objective function. To modify the objective function to give the cumulative water output, let $\beta_n$, $gamma_m$, and $\kappa_l=1$.
+
+%Describe how GWM solves nonlinear optimization problems (SLP)
+If the optimization problem is \replaced[id=FR]{nonlinear}{linear}, then GWM uses a technique called \replaced[id=FR]{using Sequential Linear Programming (SLP)}{Simplex} to maximize the objective function \citep{ahlfeld2005gwm}. \replaced[id=FR]{SLP}{Simplex} works by calculating the response matrix, and then using this matrix and the list of constraints to calculate how to adjust the parameters (such as pumping rates) to maximize the objective function. The response matrix, also termed the Jacobian matrix, is a matrix of partial derivatives of the objective function with respect to each of the parameters of interest. The elements of the response matrix are calculated by the finite-difference perturbation method. The method begins by evaluating the objective function once with an initial set of parameters. A single parameter then is perturbed by a defined perturbation step value. Next, the objective function is evaluated again while using the parameter set with the new perturbed parameter. The response coefficient is then just the difference between the two objective function values divided by the perturbation step value. For an optimization problem with N parameters to adjust, the objective function (and so the groundwater model) runs N+1 iterations every time the response matrix is calculated. For linear optimization problems, the response matrix only needs to be calculated once. Unfortunately, most groundwater models contain rivers or other head-dependent boundaries, thereby making these optimization problems nonlinear.\added[id=FR]{With nonlinear optimization problems, a new response matrix is calculated every time the parameters are adjusted. Compared to linear optimization problems, the need for repeated calculations of the response matrix makes optimizing nonlinear problems a computationally expensive process.}
+
+%[DELETED] Describe how GWM solves nonlinear optimization problems (SLP)
+\deleted[id=FR]{If the optimization problem is nonlinear, then GWM maximizes the objective function by using Sequential Linear Programming (SLP). SLP works by treating nonlinear problems as a sequence of first-order (linear) approximations of the optimization problem citep{ahlfeld2005gwm}. During SLP, the response matrix is calculated at the current parameter state. A new, optimal parameter state that maximizes the objective function then is calculated using this response matrix. The optimal parameter state then is set as the current parameter state, its response matrix is calculated, and the entire process repeats until the objective function no longer increases. Compared to linear optimization problems, the need for repeated calculations of the response matrix makes optimizing nonlinear problems a computationally expensive process.}
+
+\section{Demonstration of EO-WPP}
+\subsection{Case 1: Simple Geometric Problem}
+To examine the spatial behaviors of EO-WPP, the algorithm was first tested on an optimization problem with simple geometry. The optimal solutions for these problems are simple and known, so these problems can give insight into how EO-WPP converges toward a solution.
+\subsubsection{Set-up of Problem}
+%Present the geometry problem
+ One of the geometry problems is a point target problem. Given a set of points randomly placed on a 2D plane, the goal of EO-WPP is to adjust the position of the points to be as close to the origin point as possible. The fitness function used by EO-WPP is just the distance from the point to the origin:
+\begin{equation}\label{PointProbFitFunc}
+  Fitness\ of\ \vec{w}_{i} = ||\vec{w}_{i}||_{L_{2}} = \sqrt[2]{x_{i}^{2}+y_{i}^{2}}
+\end{equation}
+Unlike the well placement problem, the goal for this optimization problem is to find a solution that minimizes the objective function. Simply multiplying the fitness function by negative one converts the minimization problem into a maximization problem. Otherwise, all other mechanisms of the algorithm remain the same. With every iteration of EO-WPP, points that are farthest from the origin have the lowest fitness and so will be removed. A removed point will be replaced by a point that is randomly placed near the point of highest fitness, which is the point that is closest to the origin. \replaced[id=FR]{Points are free to be placed anywhere within the bounds of the domain.}{A constraint is defined such that no two points will have the same location. This prevents the loss of points (and information) within the solution.} \added[id=FR]{The location of these points are defined on a continuous 2D Cartesian plane that extends from -100 to 100 in both the x and y axis.} \deleted[id=FR]{For the model domain, the 2D Cartesian plane will extend from -100 to 100 in both the x and y axis.}
+
+The parameter $I$, the number of points, was set to three, six, and twelve points during testing to observe how EO-WPP would respond with increasing numbers of points. Ten runs for each set of points were performed and the average performances with each set of runs were calculated and compared. Performance of the overall solution was measured by the average distance between the points and the origin.
+
+\added[id=FR]{To test for how the heuristic for placing a new well affects the performance of EO-WPP algorithm, a comparison of three different placement heuristics was performed with the simple geometric problem used as a benchmark. The first heuristic randomly places the new well anywhere within the domain. The second heuristic places the new well within a circle centered around the best well. The radius of this circle (the placement radius) is set to the distance between two different and randomly chosen wells. The third heuristic is similar to the second heuristic except that it sets the placement radius equal to the maximum distance between any two wells. This is also the heuristic used by the proposed EO-WPP algorithm. For each heuristic, 100 runs were performed, with each run consisting of 300 iterations of the EO-WPP algorithm. Each run was initialized with a random starting positions for the wells. The number of wells was set to six for all tests.}
+
+\added[id=FR]{The EO-WPP algorithm was also compared against particle swarm optimization (PSO) and the Broyden-Fletcher-Goldfarb-Shanno (BFGS) algorithm. PSO was selected because it is a popular global search optimization algorithm. Likewise, the BFGS was also selected because it was a common local search algorithm. By comparing EO-WPP to PSO and BFGS, EO-WPP's performance can be compared to different modes of optimization. For each method, 100 runs were performed, with the goal of optimally placing six wells. The number of times the simple geometric objective function was evaluated was recorded to allow proper comparison between the three optimization methods.}
+
+\subsubsection{Results}
+%Discuss Case 1 results
+Figure \ref{fig:Case1Graph} displays the results for running EO-WPP on the point target problem with various numbers of points, $I$. The results show that the performance of the EO-WPP algorithm is partially sensitive to the number of points to optimize for. For all values of $I$, the algorithm converged toward a solution that minimized the objective function. On average, EO-WPP quickly generated a solution with the lowest objective function value when $I=6$. For values larger than $I=6$, the algorithm took longer to converge toward a solution because each iteration of EO-WPP can only move one point. With larger numbers of points, more iterations are needed to adjust the entire set of points. For values smaller than $I=6$, EO WPP initially outperformed the $I=6$ curve. However, around 10 iterations, the $I=3$ curve changes into slower rate, thereby losing to the $I=6$ curve by iteration 20. This change of EO-WPP’s performance for small point numbers was from premature convergence.
+
+\deleted[id=FR, remark={Moved to Discussion}]{%Discuss Premature Convergence results
+If the number of points is small, then EO-WPP is at risk for premature convergence. During optimization, if all the points happen to be too close to each other, the points lock into a cluster formation. As the EO-WPP algorithm continues, the entire cluster moves toward more optimal positions. Because the algorithm maintains the cluster as it moves, the speed of a moving cluster is generally slower than the speed of individual points. This clustering effect occurs because the placement of the new point is dependent on the size and location of all the other points. Cluster can form because it is more likely for a new point to be placed near the other points than to be placed far from the others. With larger numbers of points (such as $I=6$), premature convergence does not become a problem because it quickly becomes unlikely for all points to be randomly placed near the same spot. Note that this behavior was observed when EO-WPP was applied to a simple geometry optimization problem. Details of this clustering behavior will likely change if EO-WPP is applied to more complicated optimization problems.}
+
+% Discuss placement heuristic testing results
+\added[id=FR]{Figure \ref{fig:PlacementRadiusGraph} displays the results of the three different new-well placement heuristics. Shown is the mode total fitness value (objective function value) plotted against the number of iterations of the EO-WPP algorithm. The results show that  among the three heuristics, the best heuristic is the heuristic that sets the placement radius equal to the maximum distance between any two wells within the well field. This is the same heuristic used by the proposed EO-WPP algorithm (Algorithm \ref{EOWPP}). For the heuristic of randomly placing the well within the domain, the algorithm converges slower than the other two methods. For the heuristic where the placement radius was set to the distant of two distinct and randomly chosen wells, the heuristic initially converged the fastest. But by 25 iterations, the algorithm plateaus and fails to converge any further.}
+
+% Discuss comparison with other benchmarks
+\added[id=FR]{Figure \ref{fig:ConeBenchmarkGraph} displays the results for comparing EO-WPP to the PSO and BFGS optimization algorithm. Shown is the mode objective function value plotted against the number of times the objective function was evaluated. The results show that EO-WPP performs better than both the PSO and BFGS algorithms, with EO-WPP achieving near full convergence after just 60 evaluations of the objective function. BFGS then follows up as the second best performer, leaving PSO as the slowest algorithm for this benchmark.}
+
+\subsection{Case 2: Synthetic Groundwater Model}
+To test how the EO-WPP algorithm would perform on optimization problems with a groundwater model, a synthetic model was constructed. The synthetic groundwater was built and based on the benchmark example provided by \cite{ahlfeld2005gwm} in the paper that was used to verify the GWM optimization algorithm.
+\subsubsection{Set-up of Synthetic Model}
+%Introduce the synthetic model
+The modeling domain was one layer discretized by 25 by 30 grid of cells. All cells were squares and \replaced[id=FR]{have}{haa} a side length of 200 $ft$. The model was bounded by constant heads that varied from 86 to 100 $ft$ at the top and bottom of the model with no-flow boundary conditions to the left and right. In the middle of the model was a river, composed of three stream segments, with flow from left to right. All stream segments were 20 $ft$ wide and had a stream bed conductance of 20,000 $ft^2/day$. The main \replaced[id=FR]{stream}{stem} had a slope of 0.0025, whereas the tributary stream had a slope of 0.0010. Figure \ref{fig:Model_Domain} shows details for the modeling domain. To test how EO-WPP handles constraints, four conditions for streamflow depletion were placed along the river. \added[id=FR]{The streamflow depletion constraints were defined as such \citep{ahlfeld2005gwm}:}
+\begin{align}
+  Qsd_{r} &= (Qsf_{r})^{0} - Qsf_{r}\\
+  Qsd_{r} &\leq Qsd^{u}_{r}
+\end{align}
+\added[id=FR]{Streamflow depletion, $Qsd_{r}$, is defined as the difference between the initial streamflow at stream location $r$ at the end of the stress period, $(Qsf_{r})^{0}$, and the streamflow calculated at the location at the end of the stress period after implementation of the optimal pumping strategy, $Qsf_{r}$.} The \replaced[id=FR]{upper bound streamflow depletion}{stream-flow} constraint values, $Qsd^{u}_{r}$, and the times when the constraints are enforced were different for each site. This was done to test how EO-WPP handles constraint complexity across different stress periods.\deleted[id=FR]{Additional information on how the stream depletion constraint was calculated can be found in the “Stream Flow Constraints” section in the GWM paper by cite{ahlfeld2005gwm}.} The transmissivity for the model was \replaced[id=FR]{set}{changed from the homogeneous field; in the example,} to the synthetic heterogenous field shown on Figure \ref{fig:TRAN_color}.
+
+%Explain heterogeneity in transmissivity
+For simplicity of analysis, the transmissivity was set to either 50 or 500 $ft^{2}/day$. Transmissivity was 500 $ft^{2}/day$ across most of the model except for three regions of low transmissivity. The first region was at the top and bottom of the model where the constant-head boundaries were located. Any optimization algorithm can “cheat” in maximizing the objective function by pumping near constant-head boundaries (where nearly infinite flow is possible with little or no change of hydraulic head). To deter this behavior, low-transmissivity cells were placed near the boundaries to prevent EO-WPP from taking advantage of this edge-effect. The second region of low transmissivity was in the left-middle section of the model domain. This was done to see how EO-WPP would handle a situation in which a large region of the model would be a non-ideal area to place wells. The hope was that after placing a well in this region, the algorithm would quickly learn to avoid the area. The third low-transmissivity region was in the lower-right section of the model. Prior tests with this model have shown that the best place to put the wells was at the bottom right side of the model. By placing a region of low transmissivity in the same area, EO-WPP was forced to find a well-field solution that somehow navigated around this low-transmissivity region. The groundwater model simulated a three-year period, divided into 12 stress periods (one stress period for each season). The aquifer had a homogenous recharge at a rate of 0.005 $ft/day$ in the winter, 0.002 $ft/day$ in the spring, 0 $ft/day$ in the summer, and 0.001 $ft/day$ in the fall.
+
+%Explain EO-WPP setup
+The goal for EO-WPP was to determine the best locations to place four wells. The wells ran at a single pumping rate for the entire three-year period. The pumping rates for the wells could vary between zero and 50,000 $ft^3/day$. The drawdown limit for all wells was set to 10 $ft$. The task of GWM was to determine the optimal rates that maximized the cumulative output of the field for a given well field configuration while respecting all constraints. For the tests, EO-WPP was given 128 iterations to find an optimal solution. The entire EO-WPP process was restarted 128 times with a random initial well-field solution each time. This was done to determine EO-WPP’s average performance. The performance of the EO-WPP algorithm was measured by using the cumulative output of the optimal field. The unit and absolute value of the cumulative output was not important because these values were only compared to each other. Therefore, the cumulative output could be treated as the total fitness of a solution.
+
+\subsubsection{Results}
+%Discuss Case 2 Results
+A sample of a well field solution generated by EO-WPP is shown on Figure \ref{fig:Case2BestSample}. The results of the test show that EO-WPP can converge toward optimal well solutions. On average, the well-field solutions involved wells that were placed close to the river (Figure 5). This is reasonable because of the high conductivity the river offered. EO-WPP often placed the wells on the bottom-right side of the model domain and next to the southeastern stream because the water in the model was flowing into that region. While converging, EO-WPP was able to generate well-field solutions that avoided the low transmissivity regions. This shows that relying on a global constant-drawdown constraint works as a method for EO-WPP to identify regions of low productivity. Many of the solutions also had wells that were placed far from streamflow constraint sites. Therefore, the EO-WPP algorithm generated well-field solutions that took constraint sites into consideration. For EO-WPP’s overall performance, Figure \ref{fig:Case2Graph} shows the statistics computed for all 128 runs. Case 2 results shows that the EO-WPP functions, and that it can statistically perform better than the best-out-of-$N$ algorithm. In other words, on average it is computationally more efficient to run the EO-WPP algorithm $N$ times than to randomly generate $N$ well field solutions and report the best one. For this groundwater model, based on the 128 EO-WPP runs (Figure \ref{fig:Case2Graph}), a randomly generated well-field solution had a total fitness between 12,000 and 42,000 with a median of 30,000. With each iteration, the entire distribution of the solution fitness improves. By the $30^{th}$ iteration, the median solution fitness matched and exceeded the maximum fitness of the zeroth iteration of the solution. That means for this groundwater model, there is a 50\% chance that running the EO-WPP algorithm for 30 iterations will yield a well-field solution that is better than what could be achieved by randomly placing wells in the model. This method of comparing with the best out of $N$ algorithm is a valid technique that has been performed by other groups such as \cite{feng2012optimizing}.
+\added[id=FR]{With each EO-WPP iteration, the groundwater model was evaluated 15 times. So, after 30 iterations the model ran a total of 450 times. Note that the number of times the groundwater model was evaluated is dependent on the optimization function used by the fitness function.}
+
+\subsection{Case 3: Aberdeen Groundwater Model}
+After developing and testing EO-WPP with the synthetic example, the EO-WPP algorithm was applied to the Aberdeen aquifer, in South Dakota (for model details, see \citet{valder2018revised}). %This study applies the EO-WPP algorithm to a groundwater model that characterizes the region north of Aberdeen.
+
+\subsubsection{Set-up of Aberdeen Model}
+%Introduce the Study Area
+The City of Aberdeen is in Brown County in the northeastern part of South Dakota. The study area encompassed 490 $mi^2$ north of Aberdeen in the James River Lowland and Lake Dakota Plain physiographic provinces (Figure \ref{fig:StudyArea_Valder2018}). The study area included the glacial aquifer system north of Aberdeen between Foot Creek and the James River, because that area supports the City’s current municipal well field. Currently, most of the city’s water is supplied from the Elm River. When the streamflow of the river becomes too low, water is pumped from a well field seven miles north of Aberdeen. These wells were completed in the Elm aquifer, a shallow alluvial aquifer system in hydraulic connection with the Elm River. Ideally, the EO-WPP algorithm paired with the Aberdeen groundwater model can provide insight on where to place new wells to efficiently use the Elm aquifer.
+
+%Introduce the Aberdeen Groundwater Model (discretization, time periods,)
+The Aberdeen groundwater model was \deleted[id=FR]{is a revised model} presented in \citep{valder2018revised}. \deleted[id=FR]{that incorporated additional layers and other features to improve its accuracy.} The Aberdeen model consisted of seven layers. Three layers were for the Elm aquifer, the Middle James aquifer and the Deep James aquifer, and the remaining four layers were confining layers that bound the three aquifers. The Elm aquifer (Layer 2 from the top) is of interest because it is the shallowest and most accessible aquifer. The average thickness of the Elm aquifer is 24 $ft$ and the average depth to the aquifer is 30 $ft$. The model was discretized into a finite-difference grid consisting of 368 rows and 410 columns with a cell size of 200 by 200 $ft$. The model was bounded by recharge, river, drainage, and well boundary conditions. The model contained 99 stress periods that simulates the years 1975 to 2015. The revised model used the USGS finite-difference groundwater-flow model MODFLOW-NWT to calculate all water budgets and flows. Additional details for the model are in the report by \cite{valder2018revised}.
+
+\subsubsection{EO-WPP for the Aberdeen Model}
+%Describe how the EO-WPP was applied to the Aberdeen Model (bounding, drawdown constraint,)
+The goal for EO-WPP was to determine the best way to place six wells. The number of wells used was inspired by the results of Case 2 (Figure \ref{fig:Case2Graph}). In the model, these wells ran at a constant pumping rate for one year (October 1974 to October 1975). All pumping wells were installed in the Elm aquifer (Layer 2) and all wells were subject to a drawdown constraint of 10 $ft$. To prevent EO-WPP from exploiting boundary conditions, a distant constraint was defined such that all wells were at least 600 feet away from rivers, boundaries, and each other. To deter "cheating," wells also were forced to be placed in a bounded region within the model domain. For the first optimization run of EO-WPP, the well locations are bounded by $10\leq Row \leq 300$ and $100\leq Column \leq 300$. For the remaining runs, the extent of the bounding region was reduced to $100\leq Row \leq 300$. Four runs of the EO-WPP algorithm were performed. Each run involved initializing the solution with six randomly placed wells then iteratively improving the solution by applying EO-WPP for 100 iterations. Each run took approximately two days to complete when performed on a single Intel Core i7-6600U CPU running at 2.8GHz.
+
+%Describe the use of GWM and justify use of linear methods
+With each iteration, the majority of the time was spent on calculating the fitness function. The fitness function requires the optimal pumping rates for a given well-field solution. These pumping rates were determined with GWM, which was set to solve for the optimal pumping rates using \replaced[id=FR]{SLP.}{linear methods (Simplex).} \replaced[id=FR]{To reduce computation time, the convergence criterion used by SLP was adjusted such that the SLP loop terminates early}{This was done to reduce computation time.} Although this reduced the accuracy of the optimal values, it \replaced[id=FR]{does not significantly}{did not significant} affect the performance of the fitness function. The main purpose of the fitness function was to identify the well that will likely produce the least amount of water. Therefore, \replaced[id=FR]{an approximation of the optimal pumping rates is enough.}{an accurate value for the optimal pumping rate was not necessary.} \added[id=FR]{This method is similar to how $\tau$-EO operates. Introduced by \cite{boettcher1999extremal}, $\tau$-EO is a version of EO that randomly removes one of the low fitness components, instead of strictly removing the component of lowest fitness. This allows $\tau$-EO to behave like a global search algorithm and escape local minimums. By using approximately optimal pumping rates, EO-WPP adopts the same behaviour as $\tau$-EO}
+
+\subsubsection{Results of Aberdeen Model}
+%Describe Results (Performance graph)
+Results of the four runs show that EO-WPP was able to optimize the well field and converge toward a solution. For all runs, EO-WPP was able to perform at least 90\% of optimization progress within 50 iterations. The remaining iterations were spent on refining the solution. This agreed with results found with the synthetic examples in Case 2. An example of EO-WPP's optimization progress during a run is shown on Figure \ref{fig:Case3Graph}. With each iteration, the fitness of the best solution steadily increased, yet the fitness of the current solution either increased or decreased with each iteration. In Figure \ref{fig:Case3Graph} during iteration 40 to 60, the fitness of the current solution \replaced[id=FR]{dropped}{droped} significantly before later recovering. This behaviour was expected because removing the worst well and replacing it with a randomly placed new well did not guarantee an improvement of the total field output. Even without this guarantee, the fitness of the current solution still generally increased with increasing number of iterations. This indicates that the heuristic of strictly modifying the worst performing well allowed EO-WPP to generate new-well field solutions that were more likely to be better than previous solutions.
+
+%Describe Results (Placement of Wells)
+For all runs, the EO-WPP algorithm placed wells in locations that seemed to correlate with the horizontal hydraulic conductivity of the layer the wells were pumping from (Layer 2). The well-field solutions and the horizontal hydraulic conductivity are shown on Figure \ref{fig:Case3Solutions}. In the first run, EO-WPP placed some wells close to the top boundary (Figure \ref{fig:sfig1}). To ensure that EO-WPP was not taking advantage of boundary conditions, the remaining runs had the bounding region adjusted so that wells were placed below row 100. The effects of adjusting the bounding region affected the total output of the well field. Before the adjustment, the maximum well field output was \num{2.6e8} $ft^{3}/yr$. After the adjustment, the well field output was reduced to a maximum of \num{1.3e8} $ft^{3}/yr$.
+
+Regardless of the bounding region, EO-WPP consistently placed a majority of the wells near or upon sites with high horizontal hydraulic conductivity. Recall that EO-WPP only uses pumping rates and drawdown at the wells. The algorithm does not use explicit knowledge of hydraulic conductivity. Yet for the Aberdeen groundwater model, the well-field solutions appear to correlate best with the horizontal hydraulic conductivity. This indicates that the horizontal hydraulic conductivity plays a crucial role when determining optimal well-field configurations. Well locations that deviate from peak horizontal hydraulic conductivity were caused by EO-WPP's consideration of other factors such as recharge, aquifer thickness, or vertical hydraulic conductivity.
+
+\section{Discussion}
+%Limitations of EO-WPP
+%The EO-WPP comes with some limitations when compared to other optimization algorithms. One limitation is that EO-WPP, like the basic EO algorithm, behaves like a local search algorithm. This means EO-WPP can converge towards well field solutions that are not necessarily the overall best solutions for a given groundwater model. EO-WPP can only converge towards solutions that can be reached by strictly removing the least fit well. Local search algorithms like EO-WPP can be converted to global search algorithms by implementing popular methods such as random restart and Tabu search (\citealp{mendivil2005analysis,glover1989tabu}). The EO-WPP algorithm can also be modified to have an additional stochastic parameter that can transform EO-WPP into a global search algorithm. By incorporating a stochastic mechanism so that EO-WPP does not strictly remove the least fit well, the algorithm has a mechanism to escape local optimums and converge towards the global maximum. \cite{boettcher1999extremal} introduces a revised version of EO called $\tau$-EO that does this.
+
+%Another limitation of the EO-WPP algorithm is its reliance of another optimization algorithm (like GWM) in order to calculate the fitness of the wells. For every iteration of EO-WPP, the evaluation of the fitness function requires waiting for the optimal pumping rate optimization algorithm to converge onto a solution. The hybridization with another optimization algorithm also brings in all the hyperparameters of the second algorithm into EO-WPP, thereby complicating the overall process. This can be resolved by adjusting the EO-WPP algorithm so that it does not need a second optimization algorithm. This can be done by treating the well pumping rate as another attribute of the well to be optimized in parallel with the well’s location parameters. When generating new well parameters, the new pumping rates can be calculated by using the population of pumping rates, like how the location of the new well is dependent on the locations of all the other wells. In this scenario, EO-WPP can still operate properly with the fitness function being the cumulative volume a well produces.
+
+\deleted[id=FR]{%Advantages of EO-WPP (hyperparameter tuning)
+EO-WPP offers advantages that make the algorithm a strong candidate for future study and application. One advantage is the algorithm’s freedom from hyperparameter tuning. Like the basic EO algorithm, EO-WPP has no parameters that require adjustment during use. Compared to other methods such as DE and PSO, this makes EO-WPP more straightforward to use. Another advantage is that the algorithm operates on a single solution. Other optimization algorithms such as DE and PSO rely on a population of solutions. The problem is that with each iteration of the algorithm, the fitness function must run for every individual of the solution population. With large models, the need to run the fitness function multiple times just for one iteration becomes a large computational burden for the optimization algorithm. Unlike DE and PSO, EO-WPP operates on only one solution, and so for each iteration of the algorithm, the fitness function only needs to run once. This allows EO-WPP to operate under smaller computational demands than other optimization methods.}
+
+\deleted[id=FR]{% Discuss clustering tendency
+An interesting advantage EO-WPP offers is the emergent spatial behaviors the algorithm exhibits. None of these behaviors is not explicitly programmed within the algorithm. Instead, these spatial behaviors emerge naturally from the simple rules the EO-WPP follows. EO-WPP can compete with other optimization algorithms while being relatively simple by relying on emergent behaviors that arise from its simple rules to generate the complexity it needs to solve the optimization problem. One example of the algorithm’s spatial behaviors is the formation of clusters. When given an initial well solution with wells randomly placed across the model domain, EO-WPP slowly adjusts the well field configuration until it converges on an optimal solution in which the wells are clustered around the most productive area within the model domain. This is a useful spatial behavior for the design of well fields. Preference is placed on well-field configurations with wells closer to each because it generally becomes cheaper to build the infrastructure required to connect the wells together.}
+
+% Discuss risk for getting trapped at local min with placement of well (use results from case one: various number of points)
+\added[id=FR]{Within the EO-WPP algorithm, the placement of the new well is dependent on the location of the best well. This was done to introduce a clustering behaviour into the EO-WPP algorithm. Though it seems like this placement heuristic may cause the EO-WPP algorithm to get stuck at local minimums, our results show that by abiding to certain guidelines, this is not an issue. For example, Figure \ref{fig:Case1Graph} shows that with the a low enough number of points, EO-WPP is more likely to display behaviour that causes stagnation at local minimums. In Figure \ref{fig:Case1Graph}, this premature convergence behaviour can be seen in the curve for $I=3$. Note that by 10 iterations, the slope of the curve changes significantly. Yet for the other two curves, this change of slope does not exist. This is because with a low number of points, it becomes more likely for the points to become too close to each other and cause premature convergence. Yet for a sufficiently large number of points, this behaviour disappears. Based on these results, there must be at least six points to ensure EO-WPP does not exhibit this behaviour.}
+
+% Discuss results for placement radius
+\added[id=FR]{The EO-WPP algorithm places the new well within a certain distance from the best well. This distance, called the placement radius, is set to be the maximum distance between any two wells within the well field. The results on Figure \ref{fig:PlacementRadiusGraph} shows that this placement heuristic is ideal for the EO-WPP algorithm. If the placement radius was set too small, such as the distance between two random and distinct wells, then the clustering behaviour becomes too strong and causes EO-WPP to converge prematurely. In Figure \ref{fig:PlacementRadiusGraph}, this shows as an early plateau in the performance curve. If the placement radius was set too large, such as randomly placing the new well anywhere in the model domain, then EO-WPP converges too slowly towards the solution.}
+
+% Discuss sensitivity of results (does EO-WPP given the same well field solution, regardless of starting position?)
+\added[id=FR]{EO-WPP's placement heuristic introduces a clustering behaviour that can be sensitive to the configuration of the initial solution. To ensure the initial solution does not have an influence in the shape of the final solution, EO-WPP must iterate a larger number of times. With a large number of iterations, EO-WPP's stochastic mechanisms allow the algorithm to properly explore the search space before converging towards a set of solutions. This was shown to be true in the results for the synthetic model (Figure \ref{fig:Case2BestSample}) and the Aberdeen model (Figure \ref{fig:Case3Solutions}). For both cases, the EO-WPP algorithm generated very similar solutions, even when going through the EO-WPP algorithm with 100 different, randomly generated initial solutions. Tests show that as EO-WPP's performance reaches its stall limit, the solutions begin to look similar to each other. This makes sense since the number of possible well field configurations decreases as the performance of these solutions approach the global optimum value. To gain greater confidence in the stability of the solutions, multiple instances of EO-WPP can be ran, with the iteration process terminated once all instances generate the same solution.}
+
+%% Discuss advantages of EO-WPP
+% Faster convergence
+\added[id=FR]{EO-WPP is essentially a combination of mechanisms from both global and local search algorithms. EO-WPP relies on a population of wells, a technique similar to the population mechanisms used by global search algorithms. EO-WPP also operates on a single well field solution and modifies the solution based on the information gained by the solution's components. This mechanism is similar to how local search algorithms operates. EO-WPP combines these techniques in a way that allows it to avoid local minimums and quickly converge towards a solution. Figure \ref{fig:ConeBenchmarkGraph} shows that at least for the simple geometric case, EO-WPP converges faster than the PSO global search algorithm and the BFGS local search algorithm.}
+
+% Clustering of wells
+\added[id=FR]{Another advantage EO-WPP provides is its ability to find well field solutions with the wells close to each other. Figure \ref{fig:Case3Solutions} shows EO-WPP's clustering behaviour found solutions where some wells are nearby each other (e.g. Run 2 and Run 3). This behaviour is desirable for well field design since reducing distances between wells can reduce the amount of infrastructure needed to connect the wells together. What is interesting about this behaviour is that it is not explicitly defined in the objective function or in the constraints. Instead, this spatial behaviour emerges from the definition of the placement heuristic.}
+
+\section{Conclusions}
+%Summarize the EO-WPP algorithm
+This paper introduced a novel well placement optimization algorithm, EO-WPP, which was inspired by the \replaced[id=FR]{optimization}{hyperparameter-free} algorithm called Extremal Optimization. EO-WPP works by removing the least productive wells and replacing them with new wells placed randomly near the most productive wells. By following this heuristic, EO-WPP can \added[id=FR]{quickly} generate well fields optimized for cumulative well-field output.\deleted[id=FR]{, without the need to tune any hyperparameters}
+
+%Summarize experiments
+\added[id=FR]{Experiments with a simple geometric benchmark shows that EO-WPP was able to perform faster than common global search and local search methods. Experiments with a synthetic groundwater model show that with a large enough well count and number of iterations, EO-WPP was able to avoid local minimums and yield consistent well field solutions.}
+\deleted[id=FR]{Two synthetic examples show that EO-WPP is able to generate optimized well-field solutions.} \replaced[id=FR]{Experiment results also}{Results} verify that EO-WPP exhibits an emergent spatial behavior of clustering, a behavior that is useful during the design of optimal well fields. EO-WPP then was applied to the Aberdeen groundwater model. EO-WPP was able to generate multiple potential well field solutions that maximized total water discharge from the Elm aquifer while respecting drawdown and spatial constraints. The locations of the wells indicated that the horizontal hydraulic conductivity was an important factor when designing a well field for the region north of Aberdeen.
+
+%Summarize importance of work
+Although EO-WPP was applied only to a model built to help the City of Aberdeen, the methods introduced in this paper are applicable to groundwater management in general. EO-WPP can be used for designing well fields to use groundwater resources efficiently. Placement optimization problems extend beyond groundwater management, and the methods introduced by EO-WPP can be applied to other fields such as mining operations, petroleum production, groundwater monitoring, and more.
+
+%\section{Future Work}
+%Benchmarking
+%Future work for the study includes benchmarking EO-WPP with popular methods like DE and PSO. Focus must be placed on the exchange between solution quality and computation time since both are important factors when choosing an optimization algorithm. Benchmark test must also include a variety of problems in order to identify which problems EO-WPP cannot perform well on.
+%Study variants of EO-WPP
+%Revisions of the EO-WPP algorithms also need to be studied. Revisions include extending $\tau$-EO to EO-WPP or modifying EO-WPP to not use a separate optimizer. Each revision can affect the performance of the algorithm and so this affect must be measured and studied Another useful variant to investigate is multiclustering. EO-WPP was designed to find solutions that have only one cluster of wells. However, there exists solutions that involves multiple clusters of wells. The usability of EO-WPP can increase if it can discover a broader class of possible solutions
+
+\vspace{12pt}
+\begin{flushleft}
+{\bf Acknowledgements.} The authors acknowledges the financial support of the South Dakota Board of Regents through a Competitive Research Grant. This work also has been supported through a grant from the National Science Foundation (OIA-1833069. We are grateful to Dr. Aden Davis for his comments and edits.)
+\end{flushleft}
+
+\newpage
+\bibliographystyle{elsarticle-harv}
+\bibliography{EOWPP_Bib}
+
+
+%Put Figures here
+
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.6, angle=0]{EOWPP_Flowchart}
+\caption{Flowchart of the EO-WPP algorithm.}
+\label{fig:EOWPP_Flowchart}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.55, angle=0]{Case1Graph}
+\caption{The average performances of the EO-WPP plotted for $I = 3$, 6, and 12. All curves were normalized by the initial values of the average distance, so all curves begin at 1.0 and approach zero as the EO-WPP minimizes the objective function. Note that EO-WPP achieved the lowest score when I = 6.}
+\label{fig:Case1Graph}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[trim=0 50 0 0,clip,scale=0.6, angle=0]{EOWPP_Placement_Radius_Test_Graph}
+\caption{\added[id=FR]{The average performance curve of the EO-WPP algorithm with various heuristics for placing a new well. Plotted is the mode objective function value plotted against the number of iterations of the EO-WPP algorithm. Note that the best performing heuristic is where the new well is placed within a circle centered at the best well with the radius of the circle (placement radius) is set to the maximum distance between any two wells. This is the heuristic used by the proposed EO-WPP algorithm.}}
+\label{fig:PlacementRadiusGraph}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[trim=0 50 0 0,clip,scale=0.6, angle=0]{Cone_Benchmark_Graph}
+\caption{\added[id=FR]{The average performance curve of three optimization algorithms on the simple geometric problem. The proposed method EO-WPP was compared against particle swarm optimization (PSO) and the Broyden–Fletcher–Goldfarb–Shanno (BFGS) algorithm. Plotted is the mode objective function value plotted against the number of times the objective function was evaluated. Note that EO-WPP converges onto the solution faster than PSO and BFGS for this benchmark.}}
+\label{fig:ConeBenchmarkGraph}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.7, angle=0]{Model_Domain}
+\caption{Diagram of the size and dimensions of the synthetic modeling domain. The domain was a 25 by 30 grid of square cells with a side length of 200 feet. The model was bounded by constant heads at the top and bottom of the model, with no-flow boundary conditions to the left and right. In middle of the model was a river with flow from left to right. Four constraints for stream-flow depletion were placed along the river. Marked locations for wells are from \citet{ahlfeld2005gwm}, but were not used in this work. For the optimization problem, the locations of the wells will be constantly changing. This figure is from the SUPPLY example by \cite{ahlfeld2005gwm}.}
+\label{fig:Model_Domain}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[scale=1, angle=0]{SynthK.pdf}
+\caption{Transmissivity of all the cells of model. The orientation of the grid is the same as in Figure \ref{fig:Model_Domain}. Transmissivity is either 50 or 500 $ft^2/day$. There are four regions of low hydraulic conductivity. The first two region are the at top and bottom of the model where there are constant head boundaries. The third region is at the left-middle side of model, and the fourth region is at the lower-right side of the model.}
+\label{fig:TRAN_color}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[scale=1, angle=0]{Case2BestSample}
+\caption{A well-field solution EO-WPP generated after running for 128 iterations. The blue squares indicate the river cells. The four circles indicate the location of the four wells. The wells are annotated with their index number. Their color indicates their rank of fitness. The blue circle is the well with the highest fitness, the red circle indicates the well with the lowest fitness, and the green circles indicate a fitness that is between the best and the worst. In this well field solution, well 3.0 has the lowest fitness and well 4.0 has the highest fitness. Figures 3 and 4 show the model set-up.}
+\label{fig:Case2BestSample}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.55, angle=0]{Case2Graph}
+\caption{The total fitness of the well-field solution plotted against the iteration number. For all runs, the solution fitness increased with the number of iterations. With additional iterations, the rate of fitness improvement decreased because of EO-WPP convergene towards the optimal solution. Note that the median crosses the maximum fitness of the zeroth iteration by the $30^{th}$ iteration.}
+\label{fig:Case2Graph}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.9, angle=0]{StudyArea_Valder2018}
+\caption{Locations of study area (model area), stream-gages, precipitation stations, and production/observation wells. Inset
+shows model area location in Brown County and physiographic provinces in eastern South Dakota (From Figure 1 of \citet{valder2018revised}).}
+\label{fig:StudyArea_Valder2018}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.55, angle=0]{_12_2_2018_1023_graph}
+\caption{The total fitness (cumulative output) of the well-field solution plotted against the iteration number for Run 4 (Figure \ref{fig:sfig4}). Plotted is the fitness of the best solution found (solid line), and the fitness of the current solution (dashed line), for a given iteration. Notice that the fitness of the current solution erratically increased.}
+\label{fig:Case3Graph}
+\end{figure}
+
+\begin{figure}
+\centering
+\begin{subfigure}{.5\textwidth}
+    \centering
+    \includegraphics[width=1\linewidth]{_11_29_2018_EOWPP_best_kx}
+    \caption{Run 1}
+    \label{fig:sfig1}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+    \centering
+    \includegraphics[width=1\linewidth]{_12_1_2018_EOWPP_best_kx}
+    \caption{Run 2}
+    \label{fig:sfig2}
+\end{subfigure}
+\begin{subfigure}{.5\textwidth}
+    \centering
+    \includegraphics[width=1\linewidth]{_12_2_2018_921_EOWPP_best_kx}
+    \caption{Run 3}
+    \label{fig:sfig3}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+    \centering
+    \includegraphics[width=1\linewidth]{_12_2_2018_1023_EOWPP_best_kx}
+    \caption{Run 4}
+    \label{fig:sfig4}
+\end{subfigure}
+\caption{The best well-field solutions from each of the EO-WPP runs plotted against the horizontal hydraulic conductivity for Layer 2. Wells are plotted with colored dots, where blue dots are the most productive wells, red dots are the least productive wells, and green dots show wells with intermediate performance. The wells also are annotated with their fitness rank, where "1" indicates the most productive well and "6" indicates the least productive well. Notice that EO-WPP places wells near or on sites with high horizontal hydraulic conductivity.}
+\label{fig:Case3Solutions}
+\end{figure}
+
+\end{document}

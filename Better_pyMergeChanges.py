@@ -48,7 +48,7 @@ def find_square_brackets(input_string):
 
 
 # Load in file
-with open('EOWPP_test.tex', encoding="utf8") as f:
+with open('EOWPP_test.tex', 'r', encoding="utf8") as f:
     f_string = f.read()
 
 # Start applying changes
@@ -103,5 +103,5 @@ while edit_found:
             f_string[second_right_curly_bracket + 1:]
 
 # Save revised version
-with open('EOWPP_test_merge.tex', 'w') as f_out:
+with open('EOWPP_test_merge.tex', 'w', encoding="utf8") as f_out:
     f_out.write(f_string)
