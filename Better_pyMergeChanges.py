@@ -84,6 +84,23 @@ while edit_found:
         f_string = f_string[:added_start_index] + f_string[left_curly_bracket + 1:right_curly_bracket] + \
             f_string[right_curly_bracket + 1:]
 
+    # Apply first \replaced found
+    if not f_string.find('\\replaced') == -1:
+        edit_found = True
+        d_curly_bracket = find_curly_brackets(f_string)
+        d_square_bracket = find_square_brackets(f_string)
+        added_start_index = f_string.find('\\replaced')
+        left_square_bracket = added_start_index + 9
+        right_square_bracket = d_square_bracket[left_square_bracket]
+        first_left_curly_bracket = right_square_bracket + 1
+        first_right_curly_bracket = d_curly_bracket[first_left_curly_bracket]
+        second_left_curly_bracket = first_right_curly_bracket + 1
+        second_right_curly_bracket = d_curly_bracket[second_left_curly_bracket]
+        print(f_string[added_start_index:first_right_curly_bracket + 1])
+        print()
+        f_string = f_string[:added_start_index] + f_string[first_left_curly_bracket + 1:first_right_curly_bracket] + \
+            f_string[second_right_curly_bracket + 1:]
+
 # Save revised version
 with open('test_merge.tex', 'w') as f_out:
     f_out.write(f_string)
