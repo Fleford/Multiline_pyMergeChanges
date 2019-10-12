@@ -18,6 +18,7 @@ def find_curly_brackets(input_string):
                 print('Too many closing parentheses')
     if istart:  # check if stack is empty afterwards
         print('Too many opening parentheses')
+        return None
 
     return d
 
@@ -41,6 +42,7 @@ def find_square_brackets(input_string):
                 print('Too many closing parentheses')
     if istart:  # check if stack is empty afterwards
         print('Too many opening parentheses')
+        return None
 
     return d
 
@@ -63,6 +65,8 @@ while edit_found:
         right_square_bracket = d_square_bracket[left_square_bracket]
         left_curly_bracket = right_square_bracket + 1
         right_curly_bracket = d_curly_bracket[left_curly_bracket]
+        print(f_string[deleted_start_index:right_curly_bracket + 1])
+        print()
         f_string = f_string[:deleted_start_index] + f_string[right_curly_bracket + 1:]
 
     # Apply first \added found
@@ -75,8 +79,11 @@ while edit_found:
         right_square_bracket = d_square_bracket[left_square_bracket]
         left_curly_bracket = right_square_bracket + 1
         right_curly_bracket = d_curly_bracket[left_curly_bracket]
+        print(f_string[added_start_index:right_curly_bracket + 1])
+        print()
         f_string = f_string[:added_start_index] + f_string[left_curly_bracket + 1:right_curly_bracket] + \
             f_string[right_curly_bracket + 1:]
 
+# Save revised version
 with open('test_merge.tex', 'w') as f_out:
     f_out.write(f_string)
