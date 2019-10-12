@@ -77,16 +77,11 @@ if not f_string.find('\\deleted') == -1:
     d_square_bracket = find_square_brackets(f_string)
 
     flag_index = f_string.find('\\deleted')
-    # print(f_string[flag_index:flag_index+8])
     left_square_bracket = flag_index + 8
-    # print(f_string[left_square_bracket])
     right_square_bracket = d_square_bracket[left_square_bracket]
-    # print(f_string[right_square_bracket])
     left_curly_bracket = right_square_bracket + 1
-    # print(f_string[left_curly_bracket])
     right_curly_bracket = d_curly_bracket[left_curly_bracket]
-    # print(f_string[right_curly_bracket])
-    f_string_new = f_string[:flag_index] + f_string[right_curly_bracket + 1:]
+    f_string = f_string[:flag_index] + f_string[right_curly_bracket + 1:]
 
-print(repr(f_string))
-print(repr(f_string_new))
+with open('test_merge.tex', 'w') as f_out:
+    f_out.write(f_string)
