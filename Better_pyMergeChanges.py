@@ -1,4 +1,50 @@
-import re
+
+def find_curly_brackets(input_string):
+    istart = []  # stack of indices of opening brackets
+    d = {}  # prepared dictionary
+    skip = False
+    for i, c in enumerate(input_string):
+        if skip:
+            skip = False
+            continue
+        if c == '\\': # Ignore character after backslashes
+            skip = True
+        if c == '{':
+            istart.append(i)
+        if c == '}':
+            try:
+                d[istart.pop()] = i
+            except IndexError:
+                print('Too many closing parentheses')
+    if istart:  # check if stack is empty afterwards
+        print('Too many opening parentheses')
+
+    return d
+
+
+def find_square_brackets(input_string):
+    istart = []  # stack of indices of opening brackets
+    d = {}  # prepared dictionary
+    skip = False
+    for i, c in enumerate(input_string):
+        if skip:
+            skip = False
+            continue
+        if c == '\\': # Ignore character after backslashes
+            skip = True
+        if c == '[':
+            istart.append(i)
+        if c == ']':
+            try:
+                d[istart.pop()] = i
+            except IndexError:
+                print('Too many closing parentheses')
+    if istart:  # check if stack is empty afterwards
+        print('Too many opening parentheses')
+
+    return d
+
+
 
 line_cnt = 0
 with open('test.tex', 'r') as f:
@@ -15,20 +61,16 @@ with open('test.tex', 'r') as f:
     #     print(line_cnt, line.find(r"\deleted["))
 print(repr(f_string))
 
-text = 'aaaa(bb()()ccc)dd'
-istart = []  # stack of indices of opening parentheses
-d = {}
+d_curly_bracket = find_curly_brackets(f_string)
 
-for i, c in enumerate(f_string):
-    if c == '{':
-         istart.append(i)
-    if c == '}':
-        try:
-            d[istart.pop()] = i
-        except IndexError:
-            print('Too many closing parentheses')
-if istart:  # check if stack is empty afterwards
-    print('Too many opening parentheses')
-print(d)
-print(repr(f_string[16: 696]))
+print("Curly bracket")
+print(d_curly_bracket)
+print(repr(f_string[16: d_curly_bracket[16] + 1]))
+
+d_square_bracket = find_square_brackets(f_string)
+
+print("Square bracket")
+print(d_square_bracket)
+print(repr(f_string[9: d_square_bracket[9] + 1]))
+
 
