@@ -59,18 +59,34 @@ with open('test.tex', 'r') as f:
     #     #         print(line_cnt, char_cnt, repr(char))
     #
     #     print(line_cnt, line.find(r"\deleted["))
+# print(repr(f_string))
+#
+# d_curly_bracket = find_curly_brackets(f_string)
+#
+# print("Curly bracket")
+# print(d_curly_bracket)
+#
+# d_square_bracket = find_square_brackets(f_string)
+#
+# print("Square bracket")
+# print(d_square_bracket)
+
+print()
+if not f_string.find('\\deleted') == -1:
+    d_curly_bracket = find_curly_brackets(f_string)
+    d_square_bracket = find_square_brackets(f_string)
+
+    flag_index = f_string.find('\\deleted')
+    # print(f_string[flag_index:flag_index+8])
+    left_square_bracket = flag_index + 8
+    # print(f_string[left_square_bracket])
+    right_square_bracket = d_square_bracket[left_square_bracket]
+    # print(f_string[right_square_bracket])
+    left_curly_bracket = right_square_bracket + 1
+    # print(f_string[left_curly_bracket])
+    right_curly_bracket = d_curly_bracket[left_curly_bracket]
+    # print(f_string[right_curly_bracket])
+    f_string_new = f_string[:flag_index] + f_string[right_curly_bracket + 1:]
+
 print(repr(f_string))
-
-d_curly_bracket = find_curly_brackets(f_string)
-
-print("Curly bracket")
-print(d_curly_bracket)
-print(repr(f_string[16: d_curly_bracket[16] + 1]))
-
-d_square_bracket = find_square_brackets(f_string)
-
-print("Square bracket")
-print(d_square_bracket)
-print(repr(f_string[9: d_square_bracket[9] + 1]))
-
-
+print(repr(f_string_new))
