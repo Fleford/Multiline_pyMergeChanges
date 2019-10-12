@@ -1,4 +1,3 @@
-import re
 
 def find_curly_brackets(input_string):
     istart = []  # stack of indices of opening brackets
@@ -46,11 +45,10 @@ def find_square_brackets(input_string):
     return d
 
 
-line_cnt = 0
 with open('test.tex', 'r') as f:
     f_string = f.read()
 
-# Start merging changes
+# Start applying changes
 edit_found = True
 while edit_found:
     edit_found = False
