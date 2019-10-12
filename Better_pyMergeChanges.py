@@ -1,3 +1,4 @@
+import re
 
 def find_curly_brackets(input_string):
     istart = []  # stack of indices of opening brackets
@@ -43,7 +44,6 @@ def find_square_brackets(input_string):
         print('Too many opening parentheses')
 
     return d
-
 
 
 line_cnt = 0
