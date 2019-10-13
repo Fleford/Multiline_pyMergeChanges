@@ -97,7 +97,7 @@ while edit_found:
         first_right_curly_bracket = d_curly_bracket[first_left_curly_bracket]
         second_left_curly_bracket = first_right_curly_bracket + 1
         second_right_curly_bracket = d_curly_bracket[second_left_curly_bracket]
-        print(f_string[added_start_index:first_right_curly_bracket + 1])
+        print(f_string[added_start_index:second_right_curly_bracket + 1])
         print()
         f_string = f_string[:added_start_index] + f_string[first_left_curly_bracket + 1:first_right_curly_bracket] + \
             f_string[second_right_curly_bracket + 1:]
