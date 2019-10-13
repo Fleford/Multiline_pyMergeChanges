@@ -1,4 +1,4 @@
-
+# Function Definitions
 def find_curly_brackets(input_string):
     istart = []  # stack of indices of opening brackets
     d = {}  # prepared dictionary
